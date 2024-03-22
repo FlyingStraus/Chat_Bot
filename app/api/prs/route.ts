@@ -1,67 +1,75 @@
-import { getFrameHtmlResponse } from '@coinbase/onchainkit';
-import { NextRequest, NextResponse } from 'next/server';
-import { NEXT_PUBLIC_URL } from '../../config';
-import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
+import { readFileSync } from "fs";
+import { join } from "path";
+import Link from "next/link";
 
-const fetchOpenPRCount = async () => {
-  const repo = 'open-frames/awesome-open-frames';
-  const url = `https://api.github.com/repos/${repo}/pulls?state=open`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log(`Number of open PRs: ${data.length}`);
-    return data.length;
-  } catch (error) {
-    console.error('Error fetching open PR count:', error);
-  }
+const HEADERS = {
+  "Content-Type": "text/html",
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Origin": "*",
+  Vary: "Origin",
+  "Access-Control-Allow-Methods": "GET,DELETE,PATCH,POST,PUT,OPTIONS",
+  "Access-Control-Allow-Headers":
+    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
 };
-async function generateAndSavePNG(svgContent: string) {
-  const fileName = `satori-${Date.now()}.png`;
-  const filePath = path.join('/tmp', fileName); // Use /tmp for compatibility with read-only filesystems
+
+// const homeImage = join(process.cwd(), "public/1.png");
+
+
+
+export async function GET(request: Request) {
+  const address = new URL(request.url).searchParams.get("address");
+  const token = new URL(request.url).searchParams.get("token");
+
   try {
-    const pngBuffer = await sharp(Buffer.from(svgContent)).png().toBuffer();
-    fs.writeFileSync(filePath, pngBuffer);
-    return filePath; // Return the full path of the generated file for further use
-  } catch (error) {
-    console.error('Failed to convert SVG to PNG:', error);
-    throw error;
+    // Example: Sending a GET request to another API
+    const response = await fetch(`https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=${token}&address=${address}&tag=latest&apikey=U5W6DGC6ESEB7PGT7U2R7RIUY25P9PBU6W`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data from the external API');
+    }
+
+    // Parsing the JSON response from the external API
+    const data = await response.json();
+    console.log("%s", data);
+
+    // Sending the data received from the external API as a response
+    return new Response(`<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <title>XMTP Frame Example</title>
+      </head>
+      <body>
+      <div>
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">address - ${address}</div> <br>
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">token - ${token} </div> <br>
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">Balance - ${data.result}</div> <br>
+      </div>
+      </body>
+    </html>`, { headers: HEADERS });
+
+
+  } catch(error) {
+    console.error('Error fetching data from the external API:', error);
+    return new Response(`<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <title>XMTP Frame Example</title>
+      </head>
+      <body>
+      NO DATA
+      </body>
+    </html>`, { headers: HEADERS });
   }
-}
-async function getResponse(req: NextRequest): Promise<NextResponse> {
-  const openPRCount = 10; //await fetchOpenPRCount();
-
-  const svgContent = `
-  <svg width="500" height="250" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="white"/>
-    <text x="50%" y="50%" font-family="Arial" font-size="30" fill="black" text-anchor="middle" dominant-baseline="middle">${openPRCount} Frames submitted!</text>
-  </svg>
-`;
-
-  const imageUrl = await generateAndSavePNG(svgContent);
-
-  console.log(imageUrl);
-  return new NextResponse(
-    getFrameHtmlResponse({
-      buttons: [
-        {
-          label: `Back to the main page`,
-        },
-      ],
-      image: `${NEXT_PUBLIC_URL}/${imageUrl}`,
-      postUrl: `${NEXT_PUBLIC_URL}/`,
-    }),
-  );
+  // const file = readFileSync(homeImage);
+  
 }
 
-export async function GET(req: NextRequest): Promise<Response> {
-  return getResponse(req);
-}
-export async function POST(req: NextRequest): Promise<Response> {
-  return getResponse(req);
+// OPTIONS needed for CORS (in a web XMTP Client)
+
+export async function OPTIONS() {
+  return new Response("", {
+    headers: HEADERS,
+  });
 }
