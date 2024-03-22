@@ -7,4 +7,4 @@ pnpm dev
 ```
 
 ## PS
-This is my first ever interaction with frames and front-end of a development, it was fun)
+This is my first ever interaction with frames and front-end of a development, I have spent a lot of time, but it was fun)
