@@ -1,46 +1,37 @@
-import { getFrameMetadata } from '@coinbase/onchainkit';
-import type { Metadata } from 'next';
-import { NEXT_PUBLIC_URL } from './config';
+"use client";
+import {navigate} from "./utils";
 
-const frameMetadata = getFrameMetadata({
-  buttons: [
-    {
-      label: 'Read more',
-      action: 'link',
-      target: `https://github.com/open-frames/awesome-open-frames`,
-    },
-    {
-      label: 'Go to bounty',
-      action: 'link',
-      target: `https://github.com/open-frames/awesome-open-frames/blob/main/BOUNTY.md`,
-    } /*
-    {
-      label: 'Bounty Status',
-      action: 'post',
-    },*/,
-  ],
-  postUrl: `${NEXT_PUBLIC_URL}/api/prs`,
-  image: `${NEXT_PUBLIC_URL}/picture.png`,
-});
 
-export const metadata: Metadata = {
-  title: 'Awesome Open Frame',
-  description: 'Interoperable Frames',
-  openGraph: {
-    title: 'Awesome Open Frame',
-    description: 'Interoperable Frames',
-    images: [`${NEXT_PUBLIC_URL}/picture.png`],
-  },
-  other: {
-    ...frameMetadata,
-    'of:accepts:xmtp': '2024-02-01',
-  },
-};
-
-export default function Page() {
+export default function Home() {
   return (
     <>
-      <img src={'/picture.png'} />
+      <h1 className="flex flex-col items-center justify-center min-h-screen py-2">Enter the address</h1>
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      <form action={navigate}>
+        <input
+                className="pl-3 pr-28 py-3 mt-1 text-lg block w-full border border-gray-200 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring focus:ring-blue-300"
+                maxLength={150}
+                placeholder="address"
+                required
+                type="text"
+                name="address"
+            />
+        <input
+            className="pl-3 pr-28 py-3 mt-1 text-lg block w-full border border-gray-200 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring focus:ring-blue-300"
+            maxLength={150}
+            placeholder="token"
+            required
+            type="text"
+            name="token"
+        />
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+                  Create Poll
+              </button>
+      </form>
+        
+              
+
+        </div>
     </>
   );
 }
