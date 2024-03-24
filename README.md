@@ -1,6 +1,9 @@
 ## Idea
 A webstie that will take user address and token, and return a balance of user in tokens
 
+## URL
+https://wallet-checker-straus.vercel.app/
+
 ## Execution
 ```
 pnpm dev
